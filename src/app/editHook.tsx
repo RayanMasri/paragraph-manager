@@ -17,11 +17,13 @@ export default function useEdit() {
 	}
 
 	function getFetch(route: string) {
-		fetch(`http://localhost:4000/${route}`, {
+		return fetch(`http://localhost:4000/${route}`, {
 			method: 'GET',
-		})
-			.then(console.log)
-			.catch(console.error);
+			headers: {
+				'Accept': 'application/json, text/plain, */*',
+				'Content-Type': 'application/json',
+			},
+		});
 	}
 
 	function editChange(paragraphIndex: number, questionIndex: number, question: ParagraphQuestion) {
@@ -58,5 +60,10 @@ export default function useEdit() {
 			'reset'
 		);
 	}
-	return { editChange, editBulkChange, editReset };
+
+	function getChanges() {
+		return getFetch('query-changes');
+	}
+
+	return { editChange, editBulkChange, editReset, getChanges };
 }

@@ -16,12 +16,64 @@ const setFile = (data, path) => {
 	return fs.writeFileSync(path, JSON.stringify(data), 'utf8');
 };
 
+const compareChanges = () => {
+	let current = getFile(filePath);
+	let stable = getFile(originalPath);
+
+	let changes = current.map((paragraph, index) => {
+		// Get original paragraph
+		let original = stable[index];
+
+		// Compare statuses
+		let currentStatuses = paragraph.questions.map((question) => question.status);
+		let stableStatuses = original.questions.map((question) => question.status);
+
+		let statusDifference = currentStatuses.filter((x) => !stableStatuses.includes(x));
+		statusDifference = statusDifference.length;
+
+		// Compare questions
+		let questionTitleDifference = 0;
+		let answerDifference = 0;
+		let truesDifference = 0;
+
+		paragraph.questions.map((question, _index) => {
+			let originalQuestion = original.questions[_index];
+
+			if (originalQuestion.question != question.question) {
+				questionTitleDifference += 1;
+			}
+
+			if (originalQuestion.true != question.true) {
+				truesDifference += 1;
+			}
+
+			let answersDiff = originalQuestion.answers.filter((x) => !question.answers.includes(x)).length;
+			answerDifference += answersDiff;
+		});
+
+		return [index, statusDifference, questionTitleDifference, answerDifference, truesDifference];
+	});
+
+	return changes;
+
+	// Count question title changes
+
+	// Count question answers changes
+
+	// Count correct answer changes
+};
+
 app.use(bodyParser.json());
 app.use(
 	cors({
 		origin: 'http://localhost:3000',
 	})
 );
+
+app.get('/query-changes', (req, res) => {
+	let changes = compareChanges();
+	res.json(changes);
+});
 
 app.post('/changes', (req, res) => {
 	let { questionIndex, paragraphIndex, changes } = req.body;

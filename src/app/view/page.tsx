@@ -11,7 +11,9 @@ import { useRouter } from 'next/navigation';
 
 import useEdit from '../editHook';
 
-const statuses = ['normal', 'difficult', 'incorrect', 'unsure', 'mismatched'];
+// TODO: Add individiual collapsing/expanding
+
+const statuses = ['normal', 'difficult', 'incorrect', 'unsure', 'mismatched', 'incomplete'];
 
 const IconButton = (props: { children?: React.ReactNode; onClick?: () => void }) => {
 	return (
@@ -254,7 +256,7 @@ export default function View() {
 	});
 
 	const { context, setContext } = useContext();
-	const { editBulkChange, editReset } = useEdit();
+	const { getChanges, editBulkChange, editReset } = useEdit();
 
 	useEffect(() => {
 		setContext({
@@ -362,10 +364,6 @@ export default function View() {
 			attempts: reset.attempts + 1,
 		});
 	};
-
-	useEffect(() => {
-		console.log(context);
-	}, [context]);
 
 	return (
 		<div className='w-full h-full fixed top-0 left-0 bg-gray-800 overflow-y-scroll overflow-x-hidden'>
