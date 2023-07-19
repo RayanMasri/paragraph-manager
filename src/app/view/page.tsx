@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import data from '../data.json';
 import { ParagraphQuestion } from '../types';
 import { BsAsterisk } from 'react-icons/bs';
@@ -13,7 +13,7 @@ import useEdit from '../editHook';
 
 // TODO: Add individiual collapsing/expanding
 
-const statuses = ['normal', 'difficult', 'incorrect', 'unsure', 'mismatched', 'incomplete', 'weird'];
+const statuses = ['normal', 'difficult', 'incorrect', 'unsure', 'mismatched', 'incomplete', 'weird', 'order'];
 
 const IconButton = (props: { children?: React.ReactNode; onClick?: () => void }) => {
 	return (
@@ -140,11 +140,18 @@ const QuestionCard = (props: { paragraphIndex: number; questionIndex: number; qu
 					className={`rounded w-fit text-[24px] h-full flex justify-center items-center ${
 						getQuestion() && !getQuestion().selected ? 'bg-gray-800 text-gray-200' : 'bg-green-800 text-gray-200'
 					} px-3 transition-all select-none`}
-					onClick={() => {
-						// setState({
-						// 	...state,
-						// 	selected: !state.selected,
-						// });
+					onMouseDown={(event) => {
+						let questions = [...context.questions];
+
+						questions[props.questionIndex].selected = !questions[props.questionIndex].selected;
+
+						setContext({
+							...context,
+							questions: questions,
+						});
+					}}
+					onMouseEnter={(event) => {
+						if (!context.down) return;
 
 						let questions = [...context.questions];
 
@@ -155,6 +162,21 @@ const QuestionCard = (props: { paragraphIndex: number; questionIndex: number; qu
 							questions: questions,
 						});
 					}}
+					// onClick={() => {
+					// 	// setState({
+					// 	// 	...state,
+					// 	// 	selected: !state.selected,
+					// 	// });
+
+					// 	let questions = [...context.questions];
+
+					// 	questions[props.questionIndex].selected = !questions[props.questionIndex].selected;
+
+					// 	setContext({
+					// 		...context,
+					// 		questions: questions,
+					// 	});
+					// }}
 				>
 					<div>{getQuestion() && getQuestion().selected ? 'Unselect' : 'Select'}</div>
 				</div>
@@ -254,11 +276,36 @@ export default function View() {
 		selected: [],
 	});
 
-	const { context, setContext } = useContext();
+	const { context, setContext: _setContext } = useContext();
 	const { getChanges, editBulkChange, editReset } = useEdit();
 
-	useEffect(() => {
+	const _context = useRef(context);
+	const setContext = (data: any) => {
+		_setContext(data);
+		_context.current = data;
+	};
+
+	const onDown = () => {
 		setContext({
+			..._context.current,
+			down: true,
+		});
+	};
+
+	const onUp = () => {
+		setContext({
+			..._context.current,
+
+			down: false,
+		});
+	};
+
+	useEffect(() => {
+		window.addEventListener('mousedown', onDown);
+		window.addEventListener('mouseup', onUp);
+
+		setContext({
+			...context,
 			index: index,
 			questions: paragraph.questions.map((question) => {
 				return {
@@ -267,6 +314,11 @@ export default function View() {
 				};
 			}),
 		});
+
+		return () => {
+			window.removeEventListener('mousedown', onDown);
+			window.removeEventListener('mouseup', onUp);
+		};
 	}, []);
 
 	// const onSubmitQuestion = (newQuestion: ParagraphQuestion, questionIndex: number) => {

@@ -5,12 +5,14 @@ import { ParagraphQuestion } from './types';
 interface ContextType {
 	index: number;
 	questions: ParagraphQuestion[];
+	down: boolean;
 }
 
 // Schema of context data
 let object: ContextType = {
 	index: 0,
 	questions: [],
+	down: false,
 };
 
 const Context = React.createContext({

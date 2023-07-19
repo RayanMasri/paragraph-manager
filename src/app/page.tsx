@@ -104,6 +104,7 @@ export default function Home() {
 		handleChanges();
 
 		setContext({
+			...context,
 			index: 0,
 			questions: [],
 		});
