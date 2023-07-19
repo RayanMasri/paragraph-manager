@@ -6,6 +6,15 @@ import { ParagraphQuestion } from './types';
 
 export default function useEdit() {
 	function postFetch(json: any, route: string) {
+		console.log(`http://localhost:4000/${route}`);
+		console.log({
+			method: 'POST',
+			headers: {
+				'Accept': 'application/json, text/plain, */*',
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(json),
+		});
 		return fetch(`http://localhost:4000/${route}`, {
 			method: 'POST',
 			headers: {
@@ -43,6 +52,10 @@ export default function useEdit() {
 	}
 
 	function editBulkChange(paragraphIndex: number, questions: ParagraphQuestion[]) {
+		console.log(`Received bulk change at edit, posting data`);
+		console.log(paragraphIndex);
+		console.log(questions);
+
 		return postFetch(
 			{
 				paragraphIndex: paragraphIndex,

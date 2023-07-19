@@ -1,11 +1,29 @@
+// import Audic from 'audic';
+// import express from 'express';
+// import bodyParser from 'body-parser';
+// import cors from 'cors';
+// import fs from 'fs';
 const express = require('express');
-const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
-var fs = require('fs');
+const fs = require('fs');
+const exec = require('child_process').exec;
+
+const play = (file) => {
+	let command = `ffplay -v 0 -nodisp -autoexit ${file}`;
+	exec(command);
+};
+const app = express();
 
 const filePath = '../src/app/data.json';
 const originalPath = '../stable-data.json';
+
+const playSuccess = async () => {
+	play('success.mp3');
+};
+const playError = async () => {
+	play('error.mp3');
+};
 
 const getFile = (path) => {
 	return JSON.parse(fs.readFileSync(path, 'utf8'));
@@ -71,11 +89,15 @@ app.use(
 );
 
 app.get('/query-changes', (req, res) => {
+	console.log(`Started /query-changes`);
 	let changes = compareChanges();
 	res.json(changes);
+	console.log(`Finished /query-changes`);
 });
 
 app.post('/changes', (req, res) => {
+	console.log(`Started /changes`);
+
 	let { questionIndex, paragraphIndex, changes } = req.body;
 	let data = getFile(filePath);
 
@@ -87,9 +109,15 @@ app.post('/changes', (req, res) => {
 	};
 
 	setFile(data);
+
+	playSuccess();
+	console.log(`Finished /changes`);
 });
 app.post('/bulk-changes', (req, res) => {
+	console.log(`Started /bulk-changes`);
+
 	let { paragraphIndex, changes } = req.body;
+	console.log(`Received ${changes.length} bulk change(s) from client`);
 	let data = getFile(filePath);
 
 	changes.map((question) => {
@@ -99,19 +127,28 @@ app.post('/bulk-changes', (req, res) => {
 		data[paragraphIndex].questions[index] = question;
 	});
 
+	console.log(changes);
 	console.log(`Applied ${changes.length} bulk change(s)`);
 
 	setFile(data, filePath);
+
+	playSuccess();
+	console.log(`Finished /bulk-changes`);
 });
 app.post('/reset', (req, res) => {
+	console.log(`Started /reset`);
 	let { paragraphIndex } = req.body;
 	let data = getFile(filePath);
 	let original = getFile(originalPath);
 
 	data[paragraphIndex] = original[paragraphIndex];
+	playError();
 
 	setFile(data, filePath);
 	res.json(data[paragraphIndex]);
+	console.log(`Finished /reset`);
 });
 
-app.listen(4000);
+app.listen(4000, () => {
+	console.log(`Listening on localhost:4000`);
+});

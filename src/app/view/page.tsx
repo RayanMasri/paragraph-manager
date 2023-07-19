@@ -13,7 +13,7 @@ import useEdit from '../editHook';
 
 // TODO: Add individiual collapsing/expanding
 
-const statuses = ['normal', 'difficult', 'incorrect', 'unsure', 'mismatched', 'incomplete'];
+const statuses = ['normal', 'difficult', 'incorrect', 'unsure', 'mismatched', 'incomplete', 'weird'];
 
 const IconButton = (props: { children?: React.ReactNode; onClick?: () => void }) => {
 	return (
@@ -51,9 +51,15 @@ const QuestionCard = (props: { paragraphIndex: number; questionIndex: number; qu
 
 	const { context, setContext } = useContext();
 
-	const onSubmit = () => {
+	const onSubmit = async () => {
 		if (state.saved) return;
 
+		await editChange(props.paragraphIndex, props.questionIndex, {
+			question: question,
+			answers: answers,
+			true: correct,
+			status: props.question.status,
+		});
 		// props.onSubmit({
 		// 	question: question,
 		// 	true: correct,
@@ -81,13 +87,6 @@ const QuestionCard = (props: { paragraphIndex: number; questionIndex: number; qu
 		setContext({
 			...context,
 			questions: questions,
-		});
-
-		editChange(props.paragraphIndex, props.questionIndex, {
-			question: question,
-			answers: answers,
-			true: correct,
-			status: props.question.status,
 		});
 
 		// fetch('http://localhost:4000/changes', {
@@ -290,6 +289,7 @@ export default function View() {
 
 	const onStatusChange = () => {
 		let statuses = statusOverlay.selected;
+
 		if (statuses.length == 0) return;
 
 		let selected: ParagraphQuestion[] = context.questions.map((question) => {
@@ -331,6 +331,8 @@ export default function View() {
 		});
 
 		let changes: ParagraphQuestion[] = selectedIndexed.map((e) => e.question);
+		console.log(`Sending ${changes.length} change(s) from client to server`);
+
 		editBulkChange(index, changes);
 	};
 
